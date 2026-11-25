@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0c0c0d">
 <title>LILA BLACK · Player Journey Explorer</title><meta name="theme-color" content="#0c0c0d"><meta property="og:title" content="LILA BLACK · Player Journey Explorer"><meta name="description" content="Explore player journeys, fights, loot and storm deaths on LILA BLACK maps.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230c0c0d'/%3E%3Cpath d='M10 7v18h13' fill='none' stroke='%23f4f4f5' stroke-width='4'/%3E%3C/svg%3E">
 <style>
@@ -65,6 +65,30 @@ button,select,#msearch{border-radius:999px}#maps,#maps button{border-radius:999p
 #panel{border-radius:20px}#mpop{border-radius:18px}.mr{border-radius:10px}.lbl{letter-spacing:.16em}
 #msg .big{font-size:clamp(28px,5vw,56px);font-weight:800;letter-spacing:-.035em;color:var(--hi);text-align:center;line-height:1.05}
 @media(max-width:800px){.tag{display:none}}
+/* ---- mobile / touch ---- */
+html{-webkit-text-size-adjust:100%}
+body{height:100vh;height:100dvh}
+button,select,label,.mr{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+#tip{white-space:normal;max-width:min(260px,80vw)}
+#mpop{width:min(350px,calc(100vw - 24px))}
+@media(max-width:800px){
+  #top{height:auto;min-height:54px;padding:8px 12px;padding-top:calc(8px + env(safe-area-inset-top));flex-wrap:nowrap;overflow-x:auto;gap:8px;scrollbar-width:none}
+  #top::-webkit-scrollbar{display:none}#top>*{flex:none}.sp{display:none}
+  #mpop{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 62px);width:auto}
+  button,select{min-height:40px}.chip,#heats button{min-height:36px;padding:7px 13px}
+  #panel{left:10px;right:10px;width:auto;top:10px;max-height:58%;overflow:auto}
+  #stats{left:10px;right:10px;bottom:10px}#reset{right:10px;bottom:58px}
+  #bar{padding:8px 12px calc(8px + env(safe-area-inset-bottom))}
+}
+@media(max-height:520px) and (orientation:landscape){#top{min-height:46px;height:46px;padding-top:0}#panel{width:260px;max-height:calc(100% - 20px);overflow:auto}#bar{padding:4px 12px}}
+@media(max-width:800px){
+  /* phone top bar: 2 compact rows, every control visible (no hidden horizontal scroll) */
+  #top{display:grid;grid-template-columns:repeat(12,1fr);gap:8px;overflow:visible;padding:calc(8px + env(safe-area-inset-top)) 12px 10px;align-items:center}
+  #top>*{min-width:0}.brand{grid-column:span 2}#maps{grid-column:span 10;display:flex}#maps button{flex:1;width:auto;padding:5px 6px;font-size:12px;white-space:nowrap}
+  #days{grid-column:span 4}.pick{grid-column:span 4}#link{grid-column:span 2}#png{grid-column:span 2}
+  #top select,#top .pick button{width:100%;padding:6px 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #link,#png{width:100%;padding:6px 4px;font-size:0}#link::before{content:'Share';font-size:12.5px}#png::before{content:'PNG';font-size:12.5px}
+}
 </style></head><body data-pop="">
 <header id="top">
   <div class="brand"><img class="lg" src="brand/logo.svg" alt="LILA"><span class="tag">BLACK · Journey Explorer</span></div>
@@ -291,9 +315,11 @@ $('#days').onchange=e=>{S.day=e.target.value;S.mid='';buildMatches();select();re
 $('#matchbtn').onclick=e=>{e.stopPropagation();$('.pick').classList.toggle('open');renderList()};
 $('#mpop').onclick=e=>e.stopPropagation();addEventListener('click',()=>$('.pick').classList.remove('open'));
 $('#ptg').onclick=()=>{$('#panel').classList.toggle('min');$('#ptg').textContent=$('#panel').classList.contains('min')?'+':'–'};
-if(innerWidth<800){$('#panel').classList.add('min');$('#ptg').textContent='+'} // phones: start collapsed so the map is visible
+if(innerWidth<800||innerHeight<520){$('#panel').classList.add('min');$('#ptg').textContent='+'} // phones: start collapsed so the map is visible
 $('#cmp').onchange=e=>{S.cmp=e.target.value;hkey='';dirty=true;warm()};
-$('#link').onclick=async()=>{save();await navigator.clipboard.writeText(location.href).catch(()=>{});$('#link').textContent='Copied ✓';setTimeout(()=>$('#link').textContent='Copy link',1400)};
+$('#link').onclick=async()=>{save();const u=location.href;
+  if(navigator.share&&matchMedia('(pointer:coarse)').matches){try{await navigator.share({title:'LILA BLACK · Journey Explorer',url:u});return}catch(e){if(e.name==='AbortError')return}} // native share sheet on phones
+  await navigator.clipboard.writeText(u).catch(()=>{});$('#link').textContent='Copied ✓';setTimeout(()=>$('#link').textContent='Copy link',1400)};
 $('#png').onclick=()=>{draw();const c=document.createElement('canvas'),x=c.getContext('2d'),b=40*dpr;c.width=cv.width;c.height=cv.height+b;
   x.fillStyle='#0c0c0d';x.fillRect(0,0,c.width,c.height);x.drawImage(cv,0,0);x.fillStyle='#f4f4f5';x.font=12*dpr+'px system-ui,sans-serif';x.fillText($('#hint').textContent+' · t='+fmt(S.t),14*dpr,cv.height+25*dpr);
   const lg=document.querySelector('img.lg');if(lg&&lg.naturalWidth){const h=18*dpr,w=h*lg.naturalWidth/lg.naturalHeight;x.drawImage(lg,c.width-14*dpr-w,cv.height+11*dpr,w,h)} // logo stamp on exports
@@ -302,15 +328,27 @@ addEventListener('keydown',e=>{if(e.key==='Escape')$('.pick').classList.remove('
 // zoom / pan / hover
 cv.addEventListener('wheel',e=>{e.preventDefault();const b=cv.getBoundingClientRect(),cx=e.clientX-b.left,cy=e.clientY-b.top,
   k=Math.min(12,Math.max(.6,S.k*(e.deltaY<0?1.15:1/1.15))),f=k/S.k;S.x=cx-(cx-S.x)*f;S.y=cy-(cy-S.y)*f;S.k=k;dirty=true},{passive:false});
-let drag=null;
-cv.onpointerdown=e=>{drag={x:e.clientX-S.x,y:e.clientY-S.y};cv.setPointerCapture(e.pointerId);cv.style.cursor='grabbing'};
-cv.onpointerup=()=>{drag=null;cv.style.cursor='grab'};
+const ptrs=new Map();let drag=null,pin=null,moved=0;
+const nearest=(x,y,r)=>{let best=null,bd=r*r;for(const h of hits){const d=(h[0]-x)**2+(h[1]-y)**2;if(d<bd){bd=d;best=h}}return best};
+function tip(x,y,r){const t=$('#tip'),b=cv.getBoundingClientRect(),h=nearest(x,y,r);
+  if(h){t.style.display='block';t.textContent=h[2];t.style.left=Math.max(6,Math.min(x+14,b.width-t.offsetWidth-6))+'px';t.style.top=Math.max(6,y+14)+'px'}else t.style.display='none'}
+function zoomAt(cx,cy,k){k=Math.min(12,Math.max(.6,k));const f=k/S.k;S.x=cx-(cx-S.x)*f;S.y=cy-(cy-S.y)*f;S.k=k;dirty=true}
+// Pointer Events cover mouse, touch and pen: 1 pointer = pan, 2 pointers = pinch-zoom, tap (touch) = tooltip, hover (mouse) = tooltip
+cv.onpointerdown=e=>{ptrs.set(e.pointerId,[e.clientX,e.clientY]);try{cv.setPointerCapture(e.pointerId)}catch(_){}
+  moved=0;if(ptrs.size===1)drag={x:e.clientX-S.x,y:e.clientY-S.y};
+  else if(ptrs.size===2){drag=null;const[a,c]=[...ptrs.values()];pin={d:Math.hypot(a[0]-c[0],a[1]-c[1])||1,k:S.k}}
+  cv.style.cursor='grabbing'};
 cv.onpointermove=e=>{
-  if(drag){S.x=e.clientX-drag.x;S.y=e.clientY-drag.y;dirty=true;$('#tip').style.display='none';return}
-  const b=cv.getBoundingClientRect(),x=e.clientX-b.left,y=e.clientY-b.top;let best=null,bd=100;
-  for(const h of hits){const d=(h[0]-x)**2+(h[1]-y)**2;if(d<bd){bd=d;best=h}}
-  const t=$('#tip');if(best){t.style.display='block';t.textContent=best[2];t.style.left=Math.min(x+14,b.width-t.offsetWidth-6)+'px';t.style.top=(y+14)+'px'}else t.style.display='none';
-};
+  const b=cv.getBoundingClientRect(),x=e.clientX-b.left,y=e.clientY-b.top;
+  if(ptrs.has(e.pointerId)){const o=ptrs.get(e.pointerId);moved+=Math.abs(e.clientX-o[0])+Math.abs(e.clientY-o[1]);ptrs.set(e.pointerId,[e.clientX,e.clientY])}
+  if(pin&&ptrs.size===2){const[a,c]=[...ptrs.values()];zoomAt((a[0]+c[0])/2-b.left,(a[1]+c[1])/2-b.top,pin.k*Math.hypot(a[0]-c[0],a[1]-c[1])/pin.d);$('#tip').style.display='none';return}
+  if(drag&&ptrs.size===1){S.x=e.clientX-drag.x;S.y=e.clientY-drag.y;dirty=true;if(moved>6)$('#tip').style.display='none';return}
+  if(e.pointerType==='mouse')tip(x,y,10)};
+cv.onpointerup=cv.onpointercancel=e=>{
+  const b=cv.getBoundingClientRect();
+  if(e.type==='pointerup'&&e.pointerType!=='mouse'&&moved<8&&ptrs.size===1)tip(e.clientX-b.left,e.clientY-b.top,28); // finger-sized hit radius
+  ptrs.delete(e.pointerId);pin=null;
+  const left=[...ptrs.values()][0];drag=left?{x:left[0]-S.x,y:left[1]-S.y}:null;if(!ptrs.size)cv.style.cursor='grab'};
 function resize(){const b=$('#stage').getBoundingClientRect();dpr=devicePixelRatio||1;cv.width=b.width*dpr;cv.height=b.height*dpr;reset()}
 new ResizeObserver(resize).observe($('#stage'));
 for(const id of['humans','bots','paths'])$('#'+id).checked=S[id];

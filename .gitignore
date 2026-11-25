@@ -3,3 +3,5 @@ __pycache__/
 player_data/
 .DS_Store
 .pipeline_state/
+
+.vercel

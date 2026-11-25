@@ -1,12 +1,18 @@
 # LILA BLACK · Player Journey Explorer
 A browser tool for Level Designers to explore player journeys, combat, loot and storm deaths on the three LILA BLACK maps.
 
-**Live URL:** _<paste your deployed URL here>_ · Docs: [INTERVIEW_PREP.md](INTERVIEW_PREP.md) · [ARCHITECTURE.md](ARCHITECTURE.md) · [INSIGHTS.md](INSIGHTS.md)
+**Live URL:** https://lila-lovat.vercel.app · **Repo:** https://github.com/arshadbarves/lila-journey-explorer · Docs: [INTERVIEW_PREP.md](INTERVIEW_PREP.md) · [ARCHITECTURE.md](ARCHITECTURE.md) · [INSIGHTS.md](INSIGHTS.md)
 
-**Walkthrough video:** _<paste link>_ (script: see the demo section of [INTERVIEW_PREP.md](INTERVIEW_PREP.md))
+**Walkthrough:** no video recording; the feature-by-feature demo script is in the demo section of [INTERVIEW_PREP.md](INTERVIEW_PREP.md), and every feature is listed below.
 
 ## Design
 Styled after lilagames.com: near-black `#0c0c0d` base, editorial bold type with wide-tracked wordmark, uppercase micro-labels, pill controls and a white pill call-to-action. The header, and PNG exports, use `web/brand/logo.svg`, a placeholder LILA wordmark. To use the official logo, replace that file (keep the name, or edit the `<img class="lg">` src in `index.html` for a PNG).
+
+## Mobile support
+Works on phones and tablets (tested at 360, 390 and 768 px wide, portrait and landscape):
+- **Touch gestures:** one finger pans, **pinch to zoom**, **tap a marker** for its details (hover is mouse-only).
+- **Phone layout:** compact two-row top bar with every control visible, collapsible View panel (starts collapsed so the map is visible), 36–40 px tap targets, `dvh` + safe-area insets for notches and browser bars.
+- **Share** opens the native share sheet on phones (falls back to copying the link); PNG export works on mobile browsers.
 
 ## Tech stack
 - **Pipeline:** Python 3.12 · pandas · pyarrow · numpy · Pillow

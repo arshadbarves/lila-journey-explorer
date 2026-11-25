@@ -66,3 +66,8 @@ Open Ambrose → show the top-action match, press Play (10×) → toggle humans/
 - **Frontend:** manifest-first loading, lazy shard fetch with a stale-selection guard (token), windowed list, deterministic sampling (≤120 matches), cached shards/aggregates.
 - **Measured:** first load 484 KB (was 2.3 MB+); full-population heatmap 274 KB; match list 13 DOM nodes for 568 items; tests prove aggregates == per-match counts and the manifest == shard contents.
 - **Honest limits:** aggregate grids are fixed at 256² (no zoom pyramid yet); population heat ignores the timeline; manifest is one file per map (page/shard it beyond ~100k matches); one match straddling two folders becomes two records.
+
+## Mobile support (be ready to explain)
+- **One input model:** Pointer Events handle mouse, touch and pen. A `Map` tracks active pointers: 1 = pan, 2 = pinch (zoom about the midpoint of the fingers), tap with little movement = tooltip. Hover tooltips are mouse-only because touch has no hover; touch uses a larger hit radius (28 px).
+- **Layout:** `touch-action:none` on the canvas so the browser doesn't hijack gestures; `100dvh` (mobile URL bars), `viewport-fit=cover` + `env(safe-area-inset-*)` (notches); top bar becomes a 12-column grid with two rows so nothing is hidden; match popover is `position:fixed` so the bar's overflow can't clip it.
+- **Testing:** emulated iPhone/Android/tablet/landscape in Playwright, with synthetic two-pointer pinch events. Limit: not tested on physical devices.
