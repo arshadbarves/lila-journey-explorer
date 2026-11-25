@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LILA BLACK · Player Journey Explorer</title><meta name="theme-color" content="#0c0c0d"><meta property="og:title" content="LILA BLACK · Player Journey Explorer"><meta name="description" content="Explore player journeys, fights, loot and storm deaths on LILA BLACK maps.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230c0c0d'/%3E%3Cpath d='M10 7v18h13' fill='none' stroke='%23f4f4f5' stroke-width='4'/%3E%3C/svg%3E">
+<style>
+:root{--bg:#0c0c0d;--p:#121214d9;--b:#ffffff14;--t:#f4f4f5;--m:#8e8e93;--hi:#f1f2f3}
+*{box-sizing:border-box}
+body{margin:0;height:100vh;display:flex;flex-direction:column;background:var(--bg);color:var(--t);font:13px/1.4 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+button,select,input[type=text],#msearch{background:transparent;color:var(--t);border:1px solid var(--b);border-radius:8px;padding:6px 12px;font:inherit;cursor:pointer;transition:background .12s}
+button:hover,select:hover{background:#ffffff0f}
+button.on{background:var(--hi);color:#18191b;border-color:var(--hi);font-weight:600}
+select{appearance:none;padding-right:26px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238b8e94' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center}
+select option{background:#121214}
+#top{display:flex;align-items:center;gap:12px;height:54px;padding:0 16px;flex:none;border-bottom:1px solid var(--b);background:#0c0c0d;position:relative;z-index:5}
+.brand{display:flex;align-items:center;gap:9px;font-weight:600;margin-right:6px}
+.logo{width:26px;height:26px;border-radius:7px;background:var(--hi);color:#17181a;display:grid;place-items:center;font-weight:800;font-size:11px}
+.sp{flex:1}
+#maps{display:flex;gap:2px;padding:2px;border:1px solid var(--b);border-radius:10px}
+#maps button{border:0;border-radius:8px;padding:5px 12px}
+.pick{position:relative}
+#mpop{display:none;position:absolute;top:42px;left:0;width:350px;padding:10px;background:#121214;border:1px solid var(--b);border-radius:12px;box-shadow:0 18px 48px #000a}
+.pick.open #mpop{display:block}
+#msearch{width:100%;cursor:text}
+#mlist{height:260px;overflow:auto;position:relative;margin-top:8px}
+.mr{position:absolute;left:0;right:0;height:28px;line-height:18px;padding:5px 9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;border-radius:6px;font-size:12px}
+.mr:hover{background:#ffffff0f}.mr.on{background:var(--hi);color:#17181a;font-weight:600}
+.sub{color:var(--m);font-size:11.5px}#matchinfo{margin-top:6px}
+::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:#ffffff22;border-radius:8px}
+#stage{flex:1;position:relative;min-height:0;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#18181b 0%,#0c0c0d 72%)}
+canvas{position:absolute;inset:0;width:100%;height:100%;cursor:grab;touch-action:none}
+#panel{position:absolute;left:14px;top:14px;width:272px;padding:12px 12px 14px;background:var(--p);backdrop-filter:blur(16px);border:1px solid var(--b);border-radius:14px;z-index:3;display:flex;flex-direction:column;gap:7px}
+#panel .hd{display:flex;justify-content:space-between;align-items:center}
+#ptg{padding:0 8px;border-radius:6px;color:var(--m);border:0}
+#panel.min>:not(.hd){display:none}
+.lbl{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--m);margin-top:3px}
+.chips,#heats{display:flex;flex-wrap:wrap;gap:5px}
+#heats button,.chip{border-radius:999px;padding:4px 11px;font-size:12px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--b);cursor:pointer;opacity:.42;user-select:none}
+.chip:has(input:checked){opacity:1;background:#ffffff12}
+.chip input{display:none}.chip i{width:8px;height:8px;border-radius:50%}
+#panel[data-m=j] .hm,#panel[data-m=h] .jm{display:none}
+#panel select{width:100%}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;background:#ffffff22;border-radius:4px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--hi);border:2px solid #121214}
+input[type=range]::-moz-range-thumb{width:11px;height:11px;border-radius:50%;background:var(--hi);border:2px solid #121214}
+#stats{position:absolute;left:14px;bottom:14px;display:flex;gap:16px;padding:7px 15px;background:var(--p);backdrop-filter:blur(16px);border:1px solid var(--b);border-radius:999px;z-index:3}
+.stat{display:flex;gap:6px;align-items:baseline;white-space:nowrap}.stat b{font:600 12.5px ui-monospace,SFMono-Regular,Menlo,monospace}.stat span{color:var(--m);font-size:11.5px}
+.stat:nth-child(2),.stat:nth-child(8){display:none}
+#hint{position:absolute;left:50%;transform:translateX(-50%);top:14px;max-width:46%;text-align:center;padding:4px 12px;color:var(--m);font-size:11.5px;pointer-events:none;background:var(--p);border:1px solid var(--b);border-radius:999px;backdrop-filter:blur(16px)}
+#reset{position:absolute;right:14px;bottom:14px;z-index:3;background:var(--p);backdrop-filter:blur(16px)}
+#tip{position:absolute;pointer-events:none;background:#101113ee;border:1px solid var(--b);border-radius:8px;padding:5px 9px;font-size:11.5px;display:none;white-space:nowrap;z-index:4}
+#msg{position:absolute;inset:0;display:grid;place-items:center;color:var(--m);background:#0c0c0d;z-index:6}
+#bar{display:flex;align-items:center;gap:14px;padding:10px 16px;flex:none;border-top:1px solid var(--b);background:#0c0c0d}
+body[data-pop="1"] #bar{display:none}
+#bar input{flex:1;width:auto;min-width:0}#play{width:92px;border-radius:999px;font-weight:600}
+#tl{font:12px ui-monospace,SFMono-Regular,Menlo,monospace;min-width:104px;text-align:right;color:var(--m)}
+@media(max-width:800px){#bar{gap:8px;padding:10px 12px}#tl{min-width:0;font-size:11px}#play{width:78px}#top{flex-wrap:wrap;height:auto;padding:10px 12px}.brand b{display:none}#hint{display:none}#panel{width:auto;right:14px}#stats{right:14px;overflow:auto;border-radius:12px}#reset{bottom:62px}}
+/* ---- LILA Games look: near-black #0c0c0d, editorial type, pill controls, uppercase micro-labels ---- */
+body{font-family:"Helvetica Neue",Inter,system-ui,-apple-system,"Segoe UI",sans-serif;letter-spacing:-.005em}
+#top{height:60px;border-bottom:1px solid var(--b)}
+.brand{gap:12px;margin-right:10px}.lg{height:17px;display:block}.wm{font-weight:800;letter-spacing:.22em;font-size:15px}
+.tag{color:var(--m);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;padding-left:12px;border-left:1px solid var(--b)}
+button,select,#msearch{border-radius:999px}#maps,#maps button{border-radius:999px}
+#link{background:var(--hi);color:#0c0c0d;border-color:var(--hi);font-weight:700}#link:hover{background:#fff}
+#panel{border-radius:20px}#mpop{border-radius:18px}.mr{border-radius:10px}.lbl{letter-spacing:.16em}
+#msg .big{font-size:clamp(28px,5vw,56px);font-weight:800;letter-spacing:-.035em;color:var(--hi);text-align:center;line-height:1.05}
+@media(max-width:800px){.tag{display:none}}
+</style></head><body data-pop="">
+<header id="top">
+  <div class="brand"><img class="lg" src="brand/logo.svg" alt="LILA"><span class="tag">BLACK · Journey Explorer</span></div>
+  <div id="maps"></div><select id="days"></select>
+  <div class="pick"><button id="matchbtn">All matches ▾</button>
+    <div id="mpop"><input id="msearch" type="text" placeholder="Search match id…"><div id="mlist"><div id="mspacer"></div></div><div class="sub" id="matchinfo"></div></div></div>
+  <span class="sp"></span><button id="link">Copy link</button><button id="png">Export PNG</button>
+</header>
+<div id="stage"><canvas id="cv"></canvas><div id="tip"></div><div id="hint"></div><div id="msg"><div><div class="big">Strive for<br>greatness.</div><div class="sub" id="mt" style="text-align:center;margin-top:14px">Loading…</div></div></div>
+  <div id="panel" data-m="j">
+    <div class="hd"><span class="lbl" style="margin:0">View</span><button id="ptg" title="Collapse panel">–</button></div>
+    <div id="heats"></div>
+    <div class="jm"><div class="lbl">Players</div><div class="chips">
+      <label class="chip" title="Solid cyan line, round dot"><input type="checkbox" id="humans" checked><i style="background:#22d3ee"></i>Humans</label>
+      <label class="chip" title="Dashed grey line, square dot"><input type="checkbox" id="bots" checked><i style="background:#94a3b8"></i>Bots</label>
+      <label class="chip"><input type="checkbox" id="paths" checked>Paths</label></div>
+      <div class="lbl">Events</div><div class="chips" id="evs"></div></div>
+    <div class="hm"><div class="lbl">Opacity</div><input type="range" id="hop" min="10" max="100" value="75">
+      <div class="lbl">Compare with date</div><select id="cmp"></select></div>
+  </div>
+  <div id="stats"></div><button id="reset">Reset view</button>
+</div>
+<div id="bar"><button id="play">▶ Play</button><input type="range" id="slider" min="0" max="100" value="0" step="1"><span id="tl">0:00 / 0:00</span>
+  <select id="speed"><option value="1">1×</option><option value="5">5×</option><option value="10" selected>10×</option><option value="30">30×</option><option value="60">60×</option></select></div>
+<script>
+const $=s=>document.querySelector(s);
+const MAPS={AmbroseValley:'Ambrose Valley',GrandRift:'Grand Rift',Lockdown:'Lockdown'};
+// Event codes match pipeline/build_data.py
+const EV=[{c:'#facc15',l:'Loot pickup'},{c:'#ef4444',l:'Killed a human (PvP)'},{c:'#c084fc',l:'Killed by a human (PvP)'},
+ {c:'#fb923c',l:'Killed a bot'},{c:'#f472b6',l:'Killed by a bot'},{c:'#a78bfa',l:'Killed by the storm'}];
+const HEATS=[['none','Journeys'],['traffic','Traffic'],['kills','Kill zones'],['deaths','Death zones'],['loot','Loot'],['storm','Storm deaths']];
+const HSRC={kills:[1,3],deaths:[2,4,5],loot:[0],storm:[5]};
+const S={map:'AmbroseValley',day:'all',mid:'',humans:true,bots:true,paths:true,ev:[1,1,1,1,1,1],heat:'none',hop:.75,cmp:'',t:0,dur:0,play:false,speed:10,k:1,x:0,y:0};
+let pendT=null,fromHash=false;
+(()=>{const q=new URLSearchParams(location.hash.slice(1));if(!MAPS[q.get('map')])return;fromHash=true;
+ S.map=q.get('map');S.day=q.get('day')||'all';S.mid=q.get('m')||'';S.heat=q.get('heat')||'none';S.cmp=q.get('cmp')||'';
+ S.humans=q.get('h')!=='0';S.bots=q.get('b')!=='0';S.paths=q.get('p')!=='0';
+ if(q.get('ev'))S.ev=q.get('ev').split('').map(Number);if(q.get('t'))pendT=+q.get('t')})();
+function save(){history.replaceState(null,'','#'+new URLSearchParams({map:S.map,day:S.day,m:S.mid,heat:S.heat,cmp:S.cmp,h:+S.humans,b:+S.bots,p:+S.paths,ev:S.ev.join(''),t:Math.round(S.t)}))}
+const cv=$('#cv'),g=cv.getContext('2d'),G=256,hc=document.createElement('canvas');hc.width=hc.height=G;
+const DATA={},IMG={};let D=null,ms=[],hits=[],dirty=true,dpr=1,hkey='',first=true;
+const fmt=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
+const vis=p=>p.bot?S.bots:S.humans;
+
+const MAXM=120,RH=28; // render at most MAXM matches as raw journeys; heatmaps always use the full population
+let rows=[],list=[];
+async function load(m){
+  $('#msg').style.display='grid';$('#mt').textContent='Loading '+MAPS[m]+'…';
+  if(!DATA[m]){
+    IMG[m]=new Image();IMG[m].src='maps/'+m+'.webp';
+    const d=await fetch('data/'+m+'/index.json').then(r=>r.json()); // manifest only: ~80 bytes/match
+    d.rows=d.m.map(r=>({id:r[0],day:r[1],t0:r[2],dur:r[3],h:r[4],b:r[5],s:r[6],c:r.slice(7),a:r.slice(7).reduce((x,y)=>x+y,0)}));
+    d.sh={};d.ag={};d.agg={};DATA[m]=d;await IMG[m].decode().catch(()=>{});
+  }
+  D=DATA[m];$('#msg').style.display='none';
+}
+const shard=n=>D.sh[n]||(D.sh[n]=fetch('data/'+S.map+'/'+n+'.json').then(r=>r.json())); // lazy: only shards that hold visible matches
+const getAgg=d=>D.ag[d]||(D.ag[d]=fetch('data/'+S.map+'/agg_'+d.replace(' ','_')+'.json').then(r=>r.json()).then(j=>(D.agg[d]=j)));
+const warm=()=>{if(S.heat==='none'||S.mid)return;Promise.all([...(S.day==='all'?D.days:[S.day]),...(S.cmp?[S.cmp]:[])].map(getAgg)).then(()=>{hkey='';dirty=true})};
+let tok=0;
+async function select(){
+  const tk=++tok;
+  rows=D.rows.filter(r=>(S.day==='all'||r.day===S.day)&&(!S.mid||r.id===S.mid));
+  S.dur=rows.reduce((a,r)=>Math.max(a,r.dur),1);S.t=S.dur;$('#slider').max=S.dur;$('#slider').value=S.t;stats();warm();
+  if(S.heat!=='none'&&!S.mid){ms=[];hkey='';dirty=true;return} // population heatmap needs only the aggregates: skip raw shards entirely
+  const step=Math.max(1,Math.ceil(rows.length/MAXM)),pick=rows.filter((_,i)=>i%step===0); // deterministic even sample
+  const shs=await Promise.all([...new Set(pick.map(r=>r.s))].map(shard));
+  if(tk!==tok)return; // selection changed while loading
+  const by={};shs.forEach(x=>x.matches.forEach(m=>by[m.id]=m));
+  ms=pick.map(r=>by[r.id]).filter(Boolean);hkey='';dirty=true;
+}
+function buildMatches(){
+  const q=$('#msearch').value.trim().toLowerCase(),inDay=D.rows.filter(r=>S.day==='all'||r.day===S.day);
+  list=[{id:'',label:'All matches ('+inDay.length+')'},...inDay.filter(r=>r.id.includes(q)).sort((a,b)=>b.a-a.a).map(r=>({id:r.id,
+    label:`${r.day} ${new Date(r.t0*1000).toISOString().slice(11,16)} · ${fmt(r.dur)} · ${r.h}H ${r.b}B · ${r.a} ev`}))];
+  $('#mspacer').style.height=list.length*RH+'px';renderList();
+}
+function renderList(){ // windowed rendering: only visible rows exist in the DOM, so 100k matches cost the same as 100
+  const L=$('#mlist'),a=Math.max(0,Math.floor(L.scrollTop/RH)-2),b=Math.min(list.length,a+Math.ceil(L.clientHeight/RH)+5);
+  L.querySelectorAll('.mr').forEach(e=>e.remove());
+  for(let i=a;i<b;i++){const e=document.createElement('div');e.className='mr'+(list[i].id===S.mid?' on':'');e.style.top=i*RH+'px';e.textContent=list[i].label;
+    e.onclick=()=>{S.mid=list[i].id;setPlay(false);select();renderList();$('.pick').classList.remove('open')};L.appendChild(e)}
+}
+function stats(){
+  let h=0,b=0,c=[0,0,0,0,0,0],d=0; // from the manifest: no raw data needed
+  rows.forEach(r=>{d+=r.dur;if(S.humans){h+=r.h;for(let i=0;i<6;i++)c[i]+=r.c[i]}if(S.bots){b+=r.b;for(let i=0;i<6;i++)c[i]+=r.c[6+i]}});
+  const t=[[rows.length,rows.length===1?'match':'matches'],[fmt(d/Math.max(1,rows.length)),'avg duration'],[h,'human journeys'],[b,'bot journeys'],
+   [c[1]+c[3],'kills (PvP '+c[1]+')'],[c[2]+c[4]+c[5],'deaths (storm '+c[5]+')'],[c[0],'loot pickups'],[c[1]+c[2],'PvP events']];
+  $('#stats').innerHTML=t.map(x=>`<div class="stat"><b>${x[0]}</b><span>${x[1]}</span></div>`).join('');
+  const one=rows.length===1?rows[0]:null;
+  $('#matchbtn').textContent=(one?'Match '+one.id.slice(0,6):'All matches ('+rows.length+')')+' ▾';$('#matchinfo').textContent=one?'Match '+one.id.slice(0,8)+' · '+one.h+' human, '+one.b+' bot journeys':'';
+}
+function reset(){
+  const W=cv.width/dpr,H=cv.height/dpr,f=Math.min(W,H)-16;S.k=1;S.x=(W-f)/2;S.y=(H-f)/2;dirty=true;
+}
+const fit=()=>Math.min(cv.width,cv.height)/dpr-16;
+const sc=()=>fit()/1024*S.k;
+
+function posAt(p,t){
+  const a=p.p,n=a.length/3;if(!n||t<a[0]||t>a[a.length-3]+6)return null;
+  let lo=0,hi=n-1;while(lo<hi){const m=(lo+hi+1)>>1;if(a[m*3]<=t)lo=m;else hi=m-1}
+  if(lo===n-1)return[a[lo*3+1],a[lo*3+2]];
+  const f=(t-a[lo*3])/(a[lo*3+3]-a[lo*3]||1);
+  return[a[lo*3+1]+(a[lo*3+4]-a[lo*3+1])*f,a[lo*3+2]+(a[lo*3+5]-a[lo*3+2])*f];
+}
+// Gaussian-splat density grid (256x256 over the 1024px map space) -> colourised canvas
+function gridOf(list,sg){
+  const grid=new Float32Array(G*G),R=Math.ceil(sg*3),ker=[];
+  for(let j=-R;j<=R;j++)for(let i=-R;i<=R;i++)ker.push(Math.exp(-(i*i+j*j)/(2*sg*sg)));
+  const add=(x,y)=>{
+    const cx=Math.round(x/1024*G),cy=Math.round(y/1024*G);let k=0;
+    for(let j=-R;j<=R;j++)for(let i=-R;i<=R;i++,k++){const X=cx+i,Y=cy+j;if(X>=0&&X<G&&Y>=0&&Y<G)grid[Y*G+X]+=ker[k]}
+  };
+  list.forEach(m=>m.pl.forEach(p=>{if(!vis(p))return;
+    if(S.heat==='traffic'){for(let i=0;i<p.p.length;i+=3)if(p.p[i]<=S.t)add(p.p[i+1],p.p[i+2])}
+    else for(let i=0;i<p.e.length;i+=4)if(HSRC[S.heat].includes(p.e[i+1])&&p.e[i]<=S.t)add(p.e[i+2],p.e[i+3]);
+  }));
+  return grid;
+}
+// Heat = Gaussian splat on a 256^2 grid. With "compare" set: difference of two share-normalised grids (orange = more in selection, blue = more in compared date).
+function blur(g,sg){ // separable Gaussian on the 256^2 count grid
+  const R=Math.ceil(sg*3),k=[],t=new Float32Array(G*G),o=new Float32Array(G*G);for(let i=-R;i<=R;i++)k.push(Math.exp(-i*i/(2*sg*sg)));
+  for(let y=0;y<G;y++)for(let x=0;x<G;x++){let a=0;for(let i=-R;i<=R;i++){const X=x+i;if(X>=0&&X<G)a+=g[y*G+X]*k[i+R]}t[y*G+x]=a}
+  for(let y=0;y<G;y++)for(let x=0;x<G;x++){let a=0;for(let i=-R;i<=R;i++){const Y=y+i;if(Y>=0&&Y<G)a+=t[Y*G+x]*k[i+R]}o[y*G+x]=a}
+  return o;
+}
+function popGrid(days,sg){ // sum pre-aggregated per-day grids (cost independent of raw event count)
+  const g=new Float32Array(G*G);
+  for(const d of days){const a=D.agg[d];if(!a)continue;for(const k of[S.humans?'h':'',S.bots?'b':'']){const r=k&&a[S.heat+'_'+k];if(r)for(let i=0;i<r.length;i+=2)g[r[i]]+=r[i+1]}}
+  return blur(g,sg);
+}
+// Population mode (no single match picked): heat from pre-aggregated grids = full dataset, no raw download. Single match: from raw points + timeline.
+// Compare: share-normalised difference (orange = more in selection, blue = more in the compared date).
+function heat(){
+  const pop=!S.mid,days=S.day==='all'?D.days:[S.day],X=hc.getContext('2d');
+  if(pop&&[...days,S.cmp].filter(Boolean).some(d=>!D.agg[d])){X.clearRect(0,0,G,G);return}
+  const key=[S.map,S.day,S.mid,S.heat,S.cmp,S.humans,S.bots,pop?'p':Math.floor(S.t/3)].join('|');
+  if(key===hkey)return;hkey=key;
+  const sg=S.heat==='traffic'?2:3.5,A=pop?popGrid(days,sg):gridOf(ms,sg),img=X.createImageData(G,G),diff=!!S.cmp;let out=A;
+  if(diff){const B=popGrid([S.cmp],sg),sa=A.reduce((a,b)=>a+b,0)||1,sb=B.reduce((a,b)=>a+b,0)||1;out=A.map((v,i)=>v/sa-B[i]/sb)}
+  const nz=[];for(const v of out){const a=Math.abs(v);if(a>(diff?1e-7:.01))nz.push(a)}nz.sort((a,b)=>a-b);
+  const top=nz.length?nz[Math.floor(nz.length*.97)]||nz[nz.length-1]:1;
+  for(let i=0;i<G*G;i++){
+    const v=Math.min(1,Math.abs(out[i])/top);if(v<.03)continue;let c;
+    if(diff)c=out[i]>0?[1,.55,.1]:[.2,.55,1];
+    else{const h=(1-v)*4,x=1-Math.abs(h%2-1);c=h<1?[1,x,0]:h<2?[x,1,0]:h<3?[0,1,x]:[0,x,1]}
+    img.data.set([c[0]*255,c[1]*255,c[2]*255,Math.pow(v,.6)*235],i*4);
+  }
+  X.putImageData(img,0,0);
+}
+function mk(c,x,y,r){
+  g.fillStyle=g.strokeStyle=EV[c].c;g.beginPath();
+  if(c===0){g.moveTo(x,y-r);g.lineTo(x+r,y);g.lineTo(x,y+r);g.lineTo(x-r,y);g.closePath();g.fill()}
+  else if(c===1||c===3){g.arc(x,y,c===1?r*1.5:r,0,7);g.fill();g.strokeStyle=c===1?'#fff':'#0b0e13';g.lineWidth=1.5;g.stroke()}
+  else if(c===5){g.lineWidth=2.5;g.arc(x,y,r*1.7,0,7);g.stroke();g.beginPath();g.arc(x,y,r*.7,0,7);g.fill()}
+  else{g.lineWidth=2.5;g.moveTo(x-r,y-r);g.lineTo(x+r,y+r);g.moveTo(x+r,y-r);g.lineTo(x-r,y+r);g.stroke()}
+}
+function draw(){
+  const W=cv.width/dpr,H=cv.height/dpr,s=sc(),n=ms.length,agg=S.heat!=='none'&&n>1;hits=[];$('#panel').dataset.m=S.heat==='none'?'j':'h';document.body.dataset.pop=S.heat!=='none'&&!S.mid?'1':''; // aggregate heatmap: hide markers so the heat reads
+  g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,W,H);
+  g.imageSmoothingQuality='high';
+  g.save();g.shadowColor='rgba(0,0,0,.6)';g.shadowBlur=36;g.shadowOffsetY=10;g.fillStyle='#0b0c0d';g.fillRect(S.x,S.y,1024*s,1024*s);g.restore();
+  if(IMG[S.map]&&IMG[S.map].complete)g.drawImage(IMG[S.map],S.x,S.y,1024*s,1024*s);
+  g.fillStyle='rgba(8,10,14,.35)';g.fillRect(S.x,S.y,1024*s,1024*s);g.strokeStyle='rgba(255,255,255,.16)';g.lineWidth=1;g.strokeRect(S.x+.5,S.y+.5,1024*s,1024*s);
+  if(S.heat!=='none'){heat();g.globalAlpha=S.hop;g.imageSmoothingEnabled=true;g.drawImage(hc,S.x,S.y,1024*s,1024*s);g.globalAlpha=1}
+  const X=x=>S.x+x*s,Y=y=>S.y+y*s;
+  if(S.paths&&!agg){
+    g.lineJoin='round';g.globalAlpha=n===1?.9:n<15?.6:.3;g.lineWidth=n===1?2:1.2;
+    for(const bot of[1,0]){ // bots underneath, humans on top
+      if(!(bot?S.bots:S.humans))continue;
+      g.strokeStyle=bot?'#94a3b8':'#22d3ee';g.setLineDash(bot?[5,4]:[]);g.beginPath();
+      ms.forEach(m=>m.pl.forEach(p=>{if(!!p.bot!==!!bot)return;const a=p.p;
+        for(let i=0;i<a.length&&a[i]<=S.t;i+=3){i?g.lineTo(X(a[i+1]),Y(a[i+2])):g.moveTo(X(a[i+1]),Y(a[i+2]));if(!i)continue}
+        g.moveTo(0,0)}));
+      g.stroke();
+    }
+    g.setLineDash([]);g.globalAlpha=1;
+  }
+  const r=n>1?3.5:5.5;
+  if(!agg)ms.forEach(m=>m.pl.forEach(p=>{if(!vis(p))return;const e=p.e;
+    for(let i=0;i<e.length&&e[i]<=S.t;i+=4){const c=e[i+1];if(!S.ev[c])continue;
+      const x=X(e[i+2]),y=Y(e[i+3]);if(x<-20||y<-20||x>W+20||y>H+20)continue;mk(c,x,y,r);
+      hits.push([x,y,EV[c].l+' · '+(p.bot?'bot ':'human ')+p.id+' · '+fmt(e[i])+' · match '+m.id.slice(0,6)])}
+    const q=posAt(p,S.t);if(!q)return;const x=X(q[0]),y=Y(q[1]),d=n>1?3:6;
+    g.fillStyle=p.bot?'#cbd5e1':'#22d3ee';g.strokeStyle='#fff';g.lineWidth=1.5;g.beginPath();
+    p.bot?g.rect(x-d*.8,y-d*.8,d*1.6,d*1.6):g.arc(x,y,d,0,7);g.fill();if(n===1)g.stroke();
+  }));
+  $('#hint').textContent=MAPS[S.map]+' · '+rows.length+' match'+(rows.length===1?'':'es')+(n&&n<rows.length?' (journeys: '+n+' sampled; heatmaps use all)':'')+(S.heat!=='none'?' · heatmap: '+HEATS.find(h=>h[0]===S.heat)[1]+(S.cmp?' · diff vs '+S.cmp+' (orange = more in selection, blue = more in '+S.cmp+')':'')+(agg?' (markers hidden; pick one match to see them)':''):'');
+  dirty=false;
+}
+let last=0;
+function tick(ts){
+  if(S.play){S.t=Math.min(S.dur,S.t+(ts-last)/1000*S.speed);dirty=true;if(S.t>=S.dur)setPlay(false);$('#slider').value=S.t}
+  last=ts;if(dirty){draw();if(!S.play)save();$('#tl').textContent=fmt(S.t)+' / '+fmt(S.dur)}
+  requestAnimationFrame(tick);
+}
+function setPlay(v){S.play=v;$('#play').textContent=v?'❚❚ Pause':'▶ Play';if(v&&S.t>=S.dur){S.t=0}}
+
+// ---- UI wiring ----
+function seg(el,items,get,set){
+  el.innerHTML='';items.forEach(([v,l])=>{const b=document.createElement('button');b.textContent=l;b.className=get()===v?'on':'';
+    b.onclick=()=>{set(v);[...el.children].forEach(c=>c.className='');b.className='on'};el.appendChild(b)});
+}
+async function setMap(m,keepMatch){
+  S.map=m;if(!keepMatch){S.day='all';S.mid='';S.cmp=''}setPlay(false);await load(m);
+  if(first){first=false;if(!fromHash)S.mid=D.rows.reduce((a,r)=>r.a>a.a?r:a).id}
+  seg($('#maps'),Object.entries(MAPS),()=>S.map,v=>setMap(v));
+  const days=D.days;
+  $('#days').innerHTML=[['all','All dates'],...days.map(d=>[d,d])].map(([v,l])=>`<option value="${v}">${l}</option>`).join('');$('#days').value=S.day;
+  $('#cmp').innerHTML='<option value="">None</option>'+days.map(d=>`<option>${d}</option>`).join('');$('#cmp').value=S.cmp;
+  buildMatches();await select();if(pendT!=null){S.t=Math.min(S.dur,pendT);$('#slider').value=S.t;pendT=null}resize();
+}
+$('#mlist').onscroll=renderList;$('#msearch').oninput=buildMatches;
+for(const id of['humans','bots','paths'])$('#'+id).onchange=e=>{S[id]=e.target.checked;hkey='';stats();dirty=true;warm()};
+$('#evs').innerHTML=EV.map((e,i)=>`<label class="chip" title="${e.l}"><input type="checkbox" data-i="${i}" checked><i style="background:${e.c}"></i>${['Loot','PvP kill','PvP death','Bot kill','Bot death','Storm'][i]}</label>`).join('');
+$('#evs').onchange=e=>{S.ev[e.target.dataset.i]=e.target.checked?1:0;dirty=true};
+seg($('#heats'),HEATS,()=>S.heat,v=>{const was=S.heat;S.heat=v;hkey='';dirty=true;warm();if((was==='none')!==(v==='none'))select()});
+$('#hop').oninput=e=>{S.hop=e.target.value/100;dirty=true};
+$('#play').onclick=()=>setPlay(!S.play);
+$('#slider').oninput=e=>{S.t=+e.target.value;dirty=true};
+$('#speed').onchange=e=>S.speed=+e.target.value;
+$('#reset').onclick=reset;
+$('#days').onchange=e=>{S.day=e.target.value;S.mid='';buildMatches();select();reset()};
+$('#matchbtn').onclick=e=>{e.stopPropagation();$('.pick').classList.toggle('open');renderList()};
+$('#mpop').onclick=e=>e.stopPropagation();addEventListener('click',()=>$('.pick').classList.remove('open'));
+$('#ptg').onclick=()=>{$('#panel').classList.toggle('min');$('#ptg').textContent=$('#panel').classList.contains('min')?'+':'–'};
+if(innerWidth<800){$('#panel').classList.add('min');$('#ptg').textContent='+'} // phones: start collapsed so the map is visible
+$('#cmp').onchange=e=>{S.cmp=e.target.value;hkey='';dirty=true;warm()};
+$('#link').onclick=async()=>{save();await navigator.clipboard.writeText(location.href).catch(()=>{});$('#link').textContent='Copied ✓';setTimeout(()=>$('#link').textContent='Copy link',1400)};
+$('#png').onclick=()=>{draw();const c=document.createElement('canvas'),x=c.getContext('2d'),b=40*dpr;c.width=cv.width;c.height=cv.height+b;
+  x.fillStyle='#0c0c0d';x.fillRect(0,0,c.width,c.height);x.drawImage(cv,0,0);x.fillStyle='#f4f4f5';x.font=12*dpr+'px system-ui,sans-serif';x.fillText($('#hint').textContent+' · t='+fmt(S.t),14*dpr,cv.height+25*dpr);
+  const lg=document.querySelector('img.lg');if(lg&&lg.naturalWidth){const h=18*dpr,w=h*lg.naturalWidth/lg.naturalHeight;x.drawImage(lg,c.width-14*dpr-w,cv.height+11*dpr,w,h)} // logo stamp on exports
+  c.toBlob(bl=>{const a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download='lila_'+S.map+'_'+S.heat+'.png';a.click()})};
+addEventListener('keydown',e=>{if(e.key==='Escape')$('.pick').classList.remove('open');if(e.target.id==='msearch')return;if(e.code==='Space'&&e.target.tagName!=='INPUT'&&e.target.tagName!=='SELECT'){e.preventDefault();setPlay(!S.play)}});
+// zoom / pan / hover
+cv.addEventListener('wheel',e=>{e.preventDefault();const b=cv.getBoundingClientRect(),cx=e.clientX-b.left,cy=e.clientY-b.top,
+  k=Math.min(12,Math.max(.6,S.k*(e.deltaY<0?1.15:1/1.15))),f=k/S.k;S.x=cx-(cx-S.x)*f;S.y=cy-(cy-S.y)*f;S.k=k;dirty=true},{passive:false});
+let drag=null;
+cv.onpointerdown=e=>{drag={x:e.clientX-S.x,y:e.clientY-S.y};cv.setPointerCapture(e.pointerId);cv.style.cursor='grabbing'};
+cv.onpointerup=()=>{drag=null;cv.style.cursor='grab'};
+cv.onpointermove=e=>{
+  if(drag){S.x=e.clientX-drag.x;S.y=e.clientY-drag.y;dirty=true;$('#tip').style.display='none';return}
+  const b=cv.getBoundingClientRect(),x=e.clientX-b.left,y=e.clientY-b.top;let best=null,bd=100;
+  for(const h of hits){const d=(h[0]-x)**2+(h[1]-y)**2;if(d<bd){bd=d;best=h}}
+  const t=$('#tip');if(best){t.style.display='block';t.textContent=best[2];t.style.left=Math.min(x+14,b.width-t.offsetWidth-6)+'px';t.style.top=(y+14)+'px'}else t.style.display='none';
+};
+function resize(){const b=$('#stage').getBoundingClientRect();dpr=devicePixelRatio||1;cv.width=b.width*dpr;cv.height=b.height*dpr;reset()}
+new ResizeObserver(resize).observe($('#stage'));
+for(const id of['humans','bots','paths'])$('#'+id).checked=S[id];
+document.querySelectorAll('#evs input').forEach((c,i)=>c.checked=!!S.ev[i]);
+setMap(S.map,true).then(()=>{requestAnimationFrame(tick)});
+</script></body></html>

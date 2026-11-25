@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+player_data/
+.DS_Store
+.pipeline_state/

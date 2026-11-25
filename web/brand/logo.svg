@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 124 40" role="img" aria-label="LILA">
+  <!-- Placeholder wordmark (geometric). Replace this file with the official LILA logo (keep the filename). -->
+  <g fill="#f1f2f3" fill-rule="evenodd">
+    <path d="M0 0h8v32h20v8H0z"/>
+    <rect x="38" y="0" width="8" height="40"/>
+    <path transform="translate(56 0)" d="M0 0h8v32h20v8H0z"/>
+    <path d="M84 40L100 0h8l16 40h-8.5l-3-7H95.5l-3 7zM98.5 26h11L104 12z"/>
+  </g>
+</svg>
