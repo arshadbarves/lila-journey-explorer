@@ -1,7 +1,7 @@
 # LILA BLACK · Player Journey Explorer
 A browser tool for Level Designers to explore player journeys, combat, loot and storm deaths on the three LILA BLACK maps.
 
-**Live URL:** _<paste your deployed URL here>_ · Docs: [ARCHITECTURE.md](ARCHITECTURE.md) · [INSIGHTS.md](INSIGHTS.md)
+**Live URL:** https://lila-lovat.vercel.app · **Repo:** https://github.com/arshadbarves/lila-journey-explore · Docs: [ARCHITECTURE.md](ARCHITECTURE.md) · [INSIGHTS.md](INSIGHTS.md)
 
 ## Design
 Styled after lilagames.com: near-black `#0c0c0d` base, editorial bold type with wide-tracked wordmark, uppercase micro-labels, pill controls and a white pill call-to-action. The header, and PNG exports, use `web/brand/logo.svg`, a placeholder LILA wordmark. To use the official logo, replace that file (keep the name, or edit the `<img class="lg">` src in `index.html` for a PNG).
